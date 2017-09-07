@@ -126,6 +126,9 @@
                     data = <<>> :: binary()}).
 -type rsm_first() :: #rsm_first{}.
 
+-record(yc_call_accept, {sid = <<>> :: binary()}).
+-type yc_call_accept() :: #yc_call_accept{}.
+
 -record(streamhost, {jid :: jid:jid(),
                      host = <<>> :: binary(),
                      port = 1080 :: non_neg_integer()}).
@@ -186,6 +189,9 @@
                       to :: undefined | jid:jid()}).
 -type muc_decline() :: #muc_decline{}.
 
+-record(yc_sticker_info, {sticker_id = <<>> :: binary()}).
+-type yc_sticker_info() :: #yc_sticker_info{}.
+
 -record(upload_slot_0, {get :: binary(),
                         put :: binary(),
                         xmlns = <<>> :: binary()}).
@@ -223,6 +229,9 @@
 
 -record(starttls_proceed, {}).
 -type starttls_proceed() :: #starttls_proceed{}.
+
+-record(yc_call_end, {sid = <<>> :: binary()}).
+-type yc_call_end() :: #yc_call_end{}.
 
 -record(forwarded, {delay :: 'undefined' | #delay{},
                     xml_els = [] :: [fxml:xmlel()]}).
@@ -310,12 +319,11 @@
                        ver :: 'undefined' | binary()}).
 -type roster_query() :: #roster_query{}.
 
--record(yc_info, {sent = <<>> :: binary(),
-                  uid = <<>> :: binary()}).
--type yc_info() :: #yc_info{}.
-
 -record(sm_r, {xmlns = <<>> :: binary()}).
 -type sm_r() :: #sm_r{}.
+
+-record(yc_sticker, {info = false :: 'false' | #yc_sticker_info{}}).
+-type yc_sticker() :: #yc_sticker{}.
 
 -record(muc_actor, {jid :: undefined | jid:jid(),
                     nick = <<>> :: binary()}).
@@ -359,6 +367,10 @@
 
 -record(muc_unique, {name = <<>> :: binary()}).
 -type muc_unique() :: #muc_unique{}.
+
+-record(yc_call_propose, {sid = <<>> :: binary(),
+                          type = <<97,117,100,105,111>> :: binary()}).
+-type yc_call_propose() :: #yc_call_propose{}.
 
 -record(sasl_response, {text = <<>> :: binary()}).
 -type sasl_response() :: #sasl_response{}.
@@ -404,6 +416,10 @@
                           subid = <<>> :: binary(),
                           expiry :: undefined | erlang:timestamp()}).
 -type ps_subscription() :: #ps_subscription{}.
+
+-record(yc_contact_info, {member_id = <<>> :: binary(),
+                          name = <<>> :: binary()}).
+-type yc_contact_info() :: #yc_contact_info{}.
 
 -record(bob_data, {cid = <<>> :: binary(),
                    'max-age' :: 'undefined' | non_neg_integer(),
@@ -504,6 +520,9 @@
                      notify = false :: boolean(),
                      items = [] :: [#ps_item{}]}).
 -type ps_retract() :: #ps_retract{}.
+
+-record(yc_contact, {info = false :: 'false' | #yc_contact_info{}}).
+-type yc_contact() :: #yc_contact{}.
 
 -record(upload_slot, {get :: 'undefined' | binary(),
                       put :: 'undefined' | binary(),
@@ -688,16 +707,13 @@
 -record(yc_media_item, {type = <<>> :: binary(),
                         uid = <<>> :: binary(),
                         url = <<>> :: binary(),
-                        thumbnail = false :: 'false' | #yc_thumbnail{}}).
+                        thumbnail = false :: 'false' | #yc_thumbnail{},
+                        lat = <<>> :: binary(),
+                        lng = <<>> :: binary()}).
 -type yc_media_item() :: #yc_media_item{}.
 
--record(yc_media, {media = [] :: [#yc_media_item{}]}).
--type yc_media() :: #yc_media{}.
-
--record(yc_message_data, {xmlns = <<>> :: binary(),
-                          info = false :: 'false' | #yc_info{},
-                          media = false :: 'false' | #yc_media{}}).
--type yc_message_data() :: #yc_message_data{}.
+-record(yc_media_items, {items = [] :: [#yc_media_item{}]}).
+-type yc_media_items() :: #yc_media_items{}.
 
 -record(xmpp_session, {optional = false :: boolean()}).
 -type xmpp_session() :: #xmpp_session{}.
@@ -971,8 +987,19 @@
                      url :: 'undefined' | binary(),
                      class :: 'confidential' | 'private' | 'public' | 'undefined',
                      key :: 'undefined' | #vcard_key{},
-                     desc :: 'undefined' | binary()}).
+                     desc :: 'undefined' | binary(),
+                     yc_nickname_version :: 'undefined' | binary()}).
 -type vcard_temp() :: #vcard_temp{}.
+
+-record(yc_info, {sent = <<>> :: binary(),
+                  uid = <<>> :: binary()}).
+-type yc_info() :: #yc_info{}.
+
+-record(yc_message_data, {info = false :: 'false' | #yc_info{},
+                          media = false :: 'false' | #yc_media_items{},
+                          contact = false :: 'false' | #yc_contact{},
+                          sticker = false :: 'false' | #yc_sticker{}}).
+-type yc_message_data() :: #yc_message_data{}.
 
 -record(time, {tzo :: 'undefined' | {integer(),integer()},
                utc :: undefined | erlang:timestamp()}).
@@ -988,6 +1015,7 @@
                         sasl_abort() |
                         db_result() |
                         carbons_received() |
+                        yc_contact() |
                         upload_slot() |
                         mix_participant() |
                         compressed() |
@@ -999,9 +1027,9 @@
                         shim() |
                         search_item() |
                         offline_item() |
+                        muc_item() |
                         feature_sm() |
                         roster_item() |
-                        muc_item() |
                         vcard_temp() |
                         address() |
                         sasl_success() |
@@ -1019,6 +1047,8 @@
                         yc_thumbnail() |
                         thumbnail() |
                         vcard_tel() |
+                        yc_sticker_info() |
+                        yc_contact_info() |
                         vcard_geo() |
                         vcard_photo() |
                         pubsub_owner() |
@@ -1061,7 +1091,6 @@
                         yc_message_data() |
                         xdata() |
                         iq() |
-                        yc_media() |
                         xcaptcha() |
                         streamhost() |
                         bind() |
@@ -1073,6 +1102,7 @@
                         ps_event() |
                         mam_result() |
                         rsm_first() |
+                        yc_call_accept() |
                         stat() |
                         upload_request() |
                         xdata_field() |
@@ -1096,6 +1126,7 @@
                         ps_items() |
                         ps_options() |
                         starttls() |
+                        yc_media_items() |
                         db_verify() |
                         roster_query() |
                         media_uri() |
@@ -1113,6 +1144,7 @@
                         feature_register() |
                         register() |
                         sm_r() |
+                        yc_sticker() |
                         stat_error() |
                         stanza_error() |
                         stream_error() |
@@ -1125,6 +1157,7 @@
                         privilege() |
                         push_enable() |
                         muc_unique() |
+                        yc_call_propose() |
                         sasl_response() |
                         message() |
                         presence() |
@@ -1144,6 +1177,7 @@
                         media() |
                         stanza_id() |
                         starttls_proceed() |
+                        yc_call_end() |
                         forwarded() |
                         client_id() |
                         sm_resumed() |

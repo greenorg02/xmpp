@@ -1596,6 +1596,8 @@
 			  module = 'xep0054', result = private}).
 -xml(vcard_CONFIDENTIAL, #elem{name = <<"CONFIDENTIAL">>, xmlns = <<"vcard-temp">>,
 			       module = 'xep0054', result = confidential}).
+-xml(vcard_YC_NICKNAME, #elem{name = <<"ycNicknameVersion">>, xmlns = <<"vcard-temp">>,
+			       module = 'xep0054', result = '$cdata'}).
 
 -xml(vcard_N,
      #elem{name = <<"N">>,
@@ -1810,7 +1812,7 @@
                      '$mailer', '$tz', '$geo', '$title', '$role', '$logo',
                      '$org', '$categories', '$note', '$prodid', %% '$agent',
                      '$rev', '$sort_string', '$sound', '$uid', '$url', '$class',
-                     '$key', '$desc'},
+                     '$key', '$desc', '$yc_nickname_version'},
            refs = [#ref{name = vcard_N, min = 0, max = 1, label = '$n'},
                    #ref{name = vcard_ADR, label = '$adr'},
                    #ref{name = vcard_LABEL, label = '$label'},
@@ -1842,7 +1844,8 @@
                    #ref{name = vcard_DESC, min = 0, max = 1, label = '$desc'},
                    #ref{name = vcard_CATEGORIES, default = [], min = 0, max = 1,
                         label = '$categories'},
-                   #ref{name = vcard_CLASS, min = 0, max = 1, label = '$class'}]}).
+                   #ref{name = vcard_CLASS, min = 0, max = 1, label = '$class'},
+                   #ref{name = vcard_YC_NICKNAME, min = 0, max = 1, label = '$yc_nickname_version'}]}).
 
 -xml(vcard_xupdate_photo,
      #elem{name = <<"photo">>,
@@ -4054,38 +4057,91 @@
 
 -xml(yc_media_item,
      #elem{name = <<"item">>,
-           xmlns = [<<"urn:yc:message:data">>],
-     module = 'yc_message_data',
-           result = {yc_media_item, '$type', '$uid', '$url', '$thumbnail'},
-           attrs = [#attr{name = <<"type">>, required = true, label = '$type'},
-                    #attr{name = <<"uid">>, required = true, label = '$uid'},
-                    #attr{name = <<"url">>, required = true, label = '$url'}], 
-                    refs = [#ref{name = yc_media_item_thumbnail, default = false,
-                                 min = 0, max = 1, label = '$thumbnail'}]}).
--xml(yc_media,
-     #elem{name = <<"media">>,
            xmlns = <<"urn:yc:message:data">>,
      module = 'yc_message_data',
-           result = {yc_media, '$media'},
-           refs = [#ref{name = yc_media_item, default = false, label = '$media'}]}).
-
--xml(yc_media_info,
+           result = {yc_media_item, '$type', '$uid', '$url', '$thumbnail', '$lat', '$lng'},
+           attrs = [#attr{name = <<"type">>, required = true, label = '$type'},
+                    #attr{name = <<"uid">>, required = false, label = '$uid'},
+                    #attr{name = <<"url">>, required = false, label = '$url'},
+                    #attr{name = <<"lat">>, required = false, label = '$lat'},
+                    #attr{name = <<"lng">>, required = false, label = '$lng'}],
+                    refs = [#ref{name = yc_media_item_thumbnail, default = false,
+                                 min = 0, max = 1, label = '$thumbnail'}]}).
+-xml(yc_info,
      #elem{name = <<"info">>,
            xmlns = <<"urn:yc:message:data">>,
      module = 'yc_message_data',
            result = {yc_info, '$sent', '$uid'},
-           attrs = [#attr{name = <<"sent">>, required = true, label = '$sent'},
-                    #attr{name = <<"uid">>, required = true, label = '$uid'}]}).
+           attrs = [#attr{name = <<"sent">>, required = false, label = '$sent'},
+                    #attr{name = <<"uid">>, required = false, label = '$uid'}]}).
+
+-xml(yc_media,
+     #elem{name = <<"media">>,
+           xmlns = <<"urn:yc:message:data">>,
+     module = 'yc_message_data',
+           result = {yc_media_items, '$items'},
+           refs = [#ref{name = yc_media_item, default = false, label = '$items'}]}).
+
+-xml(yc_contact_info,
+     #elem{name = <<"info">>,
+           xmlns = <<"urn:yc:msg:c:0">>,
+     module = 'yc_message_data',
+           result = {yc_contact_info, '$member_id', '$name'},
+           attrs = [#attr{name = <<"memberId">>, required = true, label = '$member_id'},
+                    #attr{name = <<"name">>, required = true, label = '$name'}]}).
+
+-xml(yc_sticker_info,
+     #elem{name = <<"info">>,
+           xmlns = <<"urn:yc:msg:s:0">>,
+     module = 'yc_message_data',
+           result = {yc_sticker_info, '$sticker_id'},
+           attrs = [#attr{name = <<"stickerId">>, required = false, label = '$sticker_id'}]}).
+
+-xml(yc_contact,
+     #elem{name = <<"contact">>,
+           xmlns = <<"urn:yc:message:data">>,
+     module = 'yc_message_data',
+           result = {yc_contact, '$info'},
+           refs = [#ref{name = yc_contact_info, default = false, min = 0, max = 1, label = '$info'}]}).
+
+-xml(yc_sticker,
+     #elem{name = <<"sticker">>,
+           xmlns = <<"urn:yc:message:data">>,
+     module = 'yc_message_data',
+           result = {yc_sticker, '$info'},
+           refs = [#ref{name = yc_sticker_info, default = false, min = 0, max = 1, label = '$info'}]}).
 
 -xml(yc_message_data,
      #elem{name = <<"yc">>,
      xmlns = <<"urn:yc:message:data">>,
      module = 'yc_message_data',
-           result = { yc_message_data, '$xmlns','$info', '$media'},
-           attrs = [#attr{name = <<"xmlns">>}],
-           refs = [#ref{name = yc_media_info, default = false, min = 0, max = 1, label = '$info'},
-                   #ref{name = yc_media, default = false, min = 0, max = 1, label = '$media'}]}).
+           result = { yc_message_data,'$info', '$media', '$contact', '$sticker'},
+           refs = [#ref{name = yc_info, default = false, min = 0, max = 1, label = '$info'},
+                   #ref{name = yc_media, default = false, min = 0, max = 1, label = '$media'},
+                   #ref{name = yc_contact, default = false, min = 0, max = 1, label = '$contact'},
+                   #ref{name = yc_sticker, default = false, min = 0, max = 1, label = '$sticker'}]}).
 
+-xml(yc_call_propose,
+     #elem{name = <<"propose">>,
+           xmlns = <<"urn:xmpp:yc:avc:0">>,
+     module = 'yc_call',
+           result = {yc_call_propose, '$sid', '$type'},
+           attrs = [#attr{name = <<"sid">>, required = true, label = '$sid'},
+                    #attr{name = <<"type">>, required = false, default = <<"audio">>, label = '$type'}]}).
+
+-xml(yc_call_end,
+     #elem{name = <<"end">>,
+           xmlns = <<"urn:xmpp:yc:avc:0">>,
+     module = 'yc_call',
+           result = {yc_call_end, '$sid'},
+           attrs = [#attr{name = <<"sid">>, required = true, label = '$sid'}]}).
+
+-xml(yc_call_accept,
+     #elem{name = <<"accept">>,
+           xmlns = <<"urn:xmpp:yc:avc:0">>,
+     module = 'yc_call',
+           result = {yc_call_accept, '$sid'},
+           attrs = [#attr{name = <<"sid">>, required = true, label = '$sid'}]}).
 
 -spec dec_tzo(_) -> {integer(), integer()}.
 dec_tzo(Val) ->
